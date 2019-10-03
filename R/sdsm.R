@@ -78,8 +78,15 @@ sdsm <- function(B,
   A$rowcol<-A$rowmarg*A$colmarg
 
   #Estimate logit model, compute probabilities
-  model.estimates <- stats::glm(formula= value ~  rowmarg + colmarg + rowcol, family = stats::binomial(link=model), data=A, control = list(maxit = maxiter))
-  probs <- as.vector(stats::predict(model.estimates,newdata=A,type = "response"))
+  if ("speedglm" %in% rownames(installed.packages())) {
+    # If speedglm is installed, use that instead
+    model.estimates <- speedglm::speedglm(formula= value ~  rowmarg + colmarg + rowcol, family = stats::binomial(link=model), data=A, control = list(maxit = maxiter))
+    probs <- as.vector(speedglm:::predict.speedglm(model.estimates,newdata=A,type = "response"))
+  } else {
+    # If speedglm isn't available, use regular glm function
+    model.estimates <- stats::glm(formula= value ~  rowmarg + colmarg + rowcol, family = stats::binomial(link=model), data=A, control = list(maxit = maxiter))
+    probs <- as.vector(stats::predict(model.estimates,newdata=A,type = "response"))
+  }
 
   #Dyad save
   edge_weights <- numeric(trials)
